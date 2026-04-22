@@ -1,0 +1,28 @@
+{
+    "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
+    "name": "io.github.andreasjhagen/youtube-video-downloader",
+    "description": "MCP server for downloading videos from YouTube, Vimeo, and other sites using yt-dlp with progress tracking",
+    "version": "1.0.1",
+    "icons": [
+        {
+            "src": "https://raw.githubusercontent.com/andreasjhagen/OpenAgent-MCPs/main/mcp-youtube-video-downloader/icon.png",
+            "mimeType": "image/png"
+        }
+    ],
+    "packages": [
+        {
+            "registryType": "npm",
+            "identifier": "@cynosure-mcp/youtube-video-downloader",
+            "version": "1.0.1",
+            "transport": {
+                "type": "stdio"
+            },
+            "environmentVariables": []
+        }
+    ],
+    "repository": {
+        "url": "https://github.com/andreasjhagen/OpenAgent-MCPs",
+        "source": "github",
+        "subfolder": "mcp-youtube-video-downloader"
+    }
+}
