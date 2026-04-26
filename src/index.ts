@@ -140,6 +140,15 @@ server.registerTool(
         const id = generateId();
         const outDir = outputDir || path.join(homedir(), 'Downloads');
 
+        // Fetch video info to determine expected filename
+        let expectedFilename = '';
+        try {
+            const info = await ytdlp.getInfoAsync(url) as Record<string, any>;
+            const title = info.title || '';
+            expectedFilename = title ? `${title}.${format}` : '';
+
+        } catch { }
+
         const state: DownloadState = {
             id,
             url,
@@ -197,11 +206,13 @@ server.registerTool(
             }
         })();
 
+        const filenameLines = expectedFilename ? `\nExpected Filename: ${expectedFilename}` : '';
+
         return {
             content: [
                 {
                     type: 'text',
-                    text: `Download started!\n\nDownload ID: ${id}\nFormat: ${format}\nQuality: ${quality}\nOutput: ${outDir}\n\nUse check_download_progress with ID "${id}" to monitor progress.`,
+                    text: `Download started!\n\nDownload ID: ${id}\nFormat: ${format}\nQuality: ${quality}\nOutput: ${outDir}${filenameLines}\n\nUse check_download_progress with ID "${id}" to monitor progress.`,
                 },
             ],
         };
