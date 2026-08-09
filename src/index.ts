@@ -85,6 +85,7 @@ const server = new McpServer({
 server.registerTool(
     'get_video_info',
     {
+        annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: true },
         description: 'Get metadata about a video (title, duration, available formats, thumbnail) without downloading it. Supports YouTube, Vimeo, and many other sites via yt-dlp.',
         inputSchema: z.object({
             url: z.string().describe('Video URL (YouTube, Vimeo, or any yt-dlp supported site)'),
@@ -119,6 +120,7 @@ server.registerTool(
 server.registerTool(
     'download_video',
     {
+        annotations: { readOnlyHint: false, destructiveHint: true, idempotentHint: false, openWorldHint: true },
         description: 'Download a video or extract its audio. Supports YouTube, Vimeo, and many other sites via yt-dlp. Returns a download ID for progress tracking. Video formats: mp4, webm, mkv. Audio formats: mp3, flac, wav, aac, m4a, opus.',
         inputSchema: z.object({
             url: z.string().describe('Video URL (YouTube, Vimeo, or any yt-dlp supported site)'),
@@ -223,6 +225,7 @@ server.registerTool(
 server.registerTool(
     'check_download_progress',
     {
+        annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false },
         description: 'Check the progress of an ongoing or completed download.',
         inputSchema: z.object({
             downloadId: z.string().describe('The download ID returned by download_video'),
@@ -277,6 +280,7 @@ server.registerTool(
 server.registerTool(
     'list_downloads',
     {
+        annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false },
         description: 'List all current and recent downloads with their status.',
     },
     async () => {
