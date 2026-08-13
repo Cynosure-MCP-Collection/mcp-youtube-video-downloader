@@ -40,5 +40,13 @@
     "video-downloader",
     "yt-dlp",
     "ai"
-  ]
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Cynosure-MCP-Collection/mcp-youtube-video-downloader.git"
+  },
+  "homepage": "https://github.com/Cynosure-MCP-Collection/mcp-youtube-video-downloader#readme",
+  "bugs": {
+    "url": "https://github.com/Cynosure-MCP-Collection/mcp-youtube-video-downloader/issues"
+  }
 }
