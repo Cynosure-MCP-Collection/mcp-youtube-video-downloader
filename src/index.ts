@@ -4,9 +4,11 @@ import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js'
 import { z } from 'zod';
 import { YtDlp } from 'ytdlp-nodejs';
 import { createRequire } from 'node:module';
+import { execFile } from 'node:child_process';
 import { homedir, tmpdir } from 'node:os';
 import * as path from 'node:path';
 import * as fs from 'node:fs';
+import { promisify } from 'node:util';
 
 const require = createRequire(import.meta.url);
 const ffmpegBin: string | null = require('ffmpeg-static');
@@ -56,6 +58,36 @@ interface DownloadState {
 
 const downloads = new Map<string, DownloadState>();
 const ytdlp = new YtDlp(ffmpegDir ? { ffmpegPath: ffmpegDir } : undefined);
+const execFileAsync = promisify(execFile);
+let updateInProgress: Promise<void> | undefined;
+
+function shouldRefreshYtDlp(err: unknown): boolean {
+    const message = err instanceof Error ? err.message : String(err);
+    return /\b403\b|forbidden|unable to extract|signature extraction|nsig/i.test(message);
+}
+
+async function refreshYtDlp(): Promise<void> {
+    if (!updateInProgress) {
+        updateInProgress = execFileAsync(ytdlp.binaryPath, ['--update'], {
+            timeout: 120_000,
+            maxBuffer: 2 * 1024 * 1024,
+        }).then(() => undefined).finally(() => {
+            updateInProgress = undefined;
+        });
+    }
+    return updateInProgress;
+}
+
+async function withYtDlpRefresh<T>(operation: () => Promise<T>): Promise<T> {
+    try {
+        return await operation();
+    } catch (err) {
+        if (!shouldRefreshYtDlp(err)) throw err;
+        console.error(`yt-dlp failed with a likely stale-extractor error; updating and retrying once: ${(err as Error).message}`);
+        await refreshYtDlp();
+        return operation();
+    }
+}
 
 function isAudioFormat(fmt: string): fmt is AudioFormat {
     return (AUDIO_FORMATS as readonly string[]).includes(fmt);
@@ -93,7 +125,7 @@ server.registerTool(
     },
     async ({ url }) => {
         try {
-            const info = await ytdlp.getInfoAsync(url) as Record<string, any>;
+            const info = await withYtDlpRefresh(() => ytdlp.getInfoAsync(url)) as Record<string, any>;
             const desc = info.description as string | undefined;
             const summary = [
                 `Title: ${info.title}`,
@@ -145,7 +177,7 @@ server.registerTool(
         // Fetch video info to determine expected filename
         let expectedFilename = '';
         try {
-            const info = await ytdlp.getInfoAsync(url) as Record<string, any>;
+            const info = await withYtDlpRefresh(() => ytdlp.getInfoAsync(url)) as Record<string, any>;
             const title = info.title || '';
             expectedFilename = title ? `${title}.${format}` : '';
 
@@ -170,7 +202,7 @@ server.registerTool(
 
                 if (isAudioFormat(format)) {
                     // Audio download
-                    const result = await ytdlp
+                    const result = await withYtDlpRefresh(() => ytdlp
                         .download(url)
                         .extractAudio()
                         .audioFormat(format)
@@ -178,22 +210,24 @@ server.registerTool(
                         .on('progress', (p) => {
                             state.progress = p.percentage_str || `${p.percentage ?? 0}%`;
                         })
-                        .run();
+                        .run());
 
                     state.filePaths = result.filePaths || [];
                 } else {
                     // Video download
-                    const q = quality === 'best' ? 'highest' : quality;
-                    const result = await ytdlp
+                    const height = quality === 'best' ? undefined : Number.parseInt(quality, 10);
+                    const formatSelector = height
+                        ? `bestvideo[height<=${height}]+bestaudio/best[height<=${height}]`
+                        : 'bestvideo+bestaudio/best';
+                    const result = await withYtDlpRefresh(() => ytdlp
                         .download(url)
-                        .filter('mergevideo')
-                        .quality(q as any)
-                        .type(format as any)
+                        .format(formatSelector)
+                        .addOption('mergeOutputFormat', format)
                         .output(outDir)
                         .on('progress', (p) => {
                             state.progress = p.percentage_str || `${p.percentage ?? 0}%`;
                         })
-                        .run();
+                        .run());
 
                     state.filePaths = result.filePaths || [];
                 }
