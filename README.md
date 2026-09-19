@@ -1,6 +1,6 @@
 # @cynosure-mcp/youtube-video-downloader
 
-MCP server for downloading videos from YouTube, Vimeo, and other sites using yt-dlp with progress tracking.
+MCP server for downloading videos from YouTube, Vimeo, and other sites using yt-dlp with progress tracking, plus Defuddle-based YouTube transcript extraction.
 
 ## Installation
 
@@ -24,6 +24,7 @@ Requires [yt-dlp](https://github.com/yt-dlp/yt-dlp) installed and available on y
 | Tool                    | Description                                                                      |
 | ----------------------- | -------------------------------------------------------------------------------- |
 | `get_video_info`        | Get video metadata (title, duration, formats, thumbnail) without downloading     |
+| `youtube_to_text`       | Extract a timestamped YouTube transcript, optionally in a preferred language     |
 | `download_video`        | Download a video or extract audio with progress tracking (returns a download ID) |
 | `get_download_progress` | Track download progress by ID                                                    |
 

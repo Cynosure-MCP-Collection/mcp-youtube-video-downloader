@@ -9,6 +9,7 @@ import { homedir, tmpdir } from 'node:os';
 import * as path from 'node:path';
 import * as fs from 'node:fs';
 import { promisify } from 'node:util';
+import { extractYoutubeTranscript } from './youtube-transcript.js';
 
 const require = createRequire(import.meta.url);
 const ffmpegBin: string | null = require('ffmpeg-static');
@@ -109,7 +110,7 @@ const server = new McpServer({
     name: 'Video Downloader',
     version: '1.0.0',
     title: 'Video Downloader',
-    description: 'Download videos from YouTube, Vimeo, and other sites using yt-dlp.',
+    description: 'Download videos with yt-dlp and extract YouTube transcripts with Defuddle.',
     icons: [{ src: 'https://unpkg.com/@cynosure-mcp/youtube-video-downloader@1.0.4/icon.png', mimeType: 'image/png' }],
 });
 
@@ -142,6 +143,39 @@ server.registerTool(
         } catch (err) {
             return {
                 content: [{ type: 'text', text: `Error fetching video info: ${(err as Error).message}` }],
+                isError: true,
+            };
+        }
+    }
+);
+
+// Tool: youtube_to_text
+server.registerTool(
+    'youtube_to_text',
+    {
+        annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: true },
+        description: 'Extract the timestamped transcript from a YouTube video using Defuddle. Returns chapter headings when available.',
+        inputSchema: z.object({
+            url: z.string().describe('YouTube watch, Shorts, or youtu.be video URL'),
+            language: z
+                .string()
+                .optional()
+                .describe('Preferred transcript language as a BCP 47 tag, such as en, de, or pt-BR'),
+        }),
+    },
+    async ({ url, language }) => {
+        try {
+            const result = await extractYoutubeTranscript(url, language);
+            const languageLine = result.language ? `\nLanguage: ${result.language}` : '';
+            return {
+                content: [{
+                    type: 'text',
+                    text: `Title: ${result.title}${languageLine}\n\n${result.transcript}`,
+                }],
+            };
+        } catch (err) {
+            return {
+                content: [{ type: 'text', text: `Error extracting YouTube transcript: ${(err as Error).message}` }],
                 isError: true,
             };
         }

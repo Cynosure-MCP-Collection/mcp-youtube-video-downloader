@@ -1,7 +1,7 @@
 {
     "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
     "name": "io.github.andreasjhagen/youtube-video-downloader",
-    "description": "Download videos from YouTube, Vimeo, and other sites with yt-dlp progress tracking",
+    "description": "Download videos with yt-dlp and extract YouTube transcripts with Defuddle",
     "version": "1.1.0",
     "icons": [
         {

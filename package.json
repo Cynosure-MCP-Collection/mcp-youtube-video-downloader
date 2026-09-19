@@ -2,7 +2,7 @@
   "name": "@cynosure-mcp/youtube-video-downloader",
   "mcpName": "io.github.andreasjhagen/youtube-video-downloader",
   "version": "1.1.0",
-  "description": "MCP server for downloading videos from YouTube, Vimeo, and other sites using yt-dlp with progress tracking",
+  "description": "MCP server for downloading videos with yt-dlp and extracting YouTube transcripts with Defuddle",
   "type": "module",
   "main": "dist/index.js",
   "bin": {
@@ -17,8 +17,10 @@
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.27.1",
+    "defuddle": "^0.19.4",
     "ffmpeg-static": "^5.3.0",
     "ffprobe-static": "^3.1.0",
+    "linkedom": "^0.18.13",
     "ytdlp-nodejs": "^3.4.5",
     "zod": "^3.24.0"
   },
